@@ -12,8 +12,12 @@ computer.
 
 ## A. Train in Colab
 
-Open <https://colab.research.google.com>, `File -> Upload notebook`, and pick
-`colab_train.ipynb` from this repo. Then `Runtime -> Run all`.
+Click this, then `Runtime -> Run all`:
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/NiranjanJ2/bittle-rl/blob/main/colab_train.ipynb)
+
+Nothing to upload and nothing to install — the link opens the notebook in
+Colab straight from GitHub.
 
 It clones the repo, installs the dependencies, trains, and gives you a
 `walk.zip` to download. Everything is in the notebook — nothing to type.

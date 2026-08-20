@@ -9,6 +9,8 @@ It is small enough to read in an afternoon.
 
 ![the trained policy walking in simulation](docs/walk.gif)
 
+**Train it yourself in your browser — no install:** [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/NiranjanJ2/bittle-rl/blob/main/colab_train.ipynb)
+
 ```
 contract.py     ← the agreement between simulation and reality. Read first.
 training/       ← the simulator, the reward, and PPO
@@ -255,7 +257,7 @@ identically, so the policy never explores a pose reality refuses to produce.
 Full setup is in **[QUICKSTART.md](QUICKSTART.md)**. The short version — you
 need two machines, and neither needs the other's dependencies:
 
-**Train in Colab.** Upload `colab_train.ipynb`, `Runtime -> Run all`. It
+**Train in Colab.** [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/NiranjanJ2/bittle-rl/blob/main/colab_train.ipynb) then `Runtime -> Run all`. It
 installs, trains, shows you a GIF of what you built, and hands you a `walk.zip`.
 Budget ~12 min for 300k steps, ~40 min for 1M.
 

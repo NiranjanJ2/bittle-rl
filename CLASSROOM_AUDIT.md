@@ -1,6 +1,8 @@
 # Classroom Audit — `bittle-rl` as a 5-week RL final project
 
-Audited against: 35 juniors, post-AP-CSP, 4 weeks of hand-coded tabular Q-learning, one robot, ~50-min periods, school laptops.
+Audited against: 35 juniors, post-AP-CSP, 4 weeks of hand-coded tabular Q-learning, **18 robots**, ~50-min periods, school laptops.
+
+*Revised 2026-08-20: originally audited assuming one robot. 18 changes the logistics conclusion and introduces a new per-unit calibration risk — see Blocker 2.*
 
 **Disclosure:** I wrote this codebase earlier in the same session, so treat this as a self-audit and weight the measured numbers over the judgments. Also, packaging changed *during* the audit at the user's instruction (Colab/local split, pinned deps, one shipped model). Sections below describe the repo **as it now stands**; where a finding was invalidated by that change I say so.
 
@@ -10,7 +12,7 @@ Every claim is tagged **[M]** measured by running it, or **[I]** inferred from r
 
 ## Verdict
 
-**Usable with specific modifications — not usable as-is.** The engineering is sound: the env is a clean Gymnasium implementation, the sim/hardware contract is genuinely shared rather than duplicated, runs are bit-for-bit reproducible **[M]**, and a hardware-verified policy ships so the robot walks on day one. The modification surface is also unusually clean — a student editing reward weights touches exactly one file, and nothing they'd break lives near the learning algorithm. But the flagship assignment does not work. I trained the "good" and "sabotaged" rewards to 1M steps and **the behavioral difference is not visible** (7.9 cm/5.6 cm·s⁻¹ vs 7.7 cm/6.3 cm·s⁻¹) **[M]**. The README's central exercise — break the reward, watch it crawl — needs a ~10M-step run students cannot afford, and the repo currently promises it will work at any budget. That's a full class period spent on an experiment that produces a shrug. Fix the exercise set (I've since replaced it with faster-acting ones, unverified) and resolve the one-robot logistics, and this is a strong final project.
+**Usable with specific modifications — not usable as-is.** The engineering is sound: the env is a clean Gymnasium implementation, the sim/hardware contract is genuinely shared rather than duplicated, runs are bit-for-bit reproducible **[M]**, and a hardware-verified policy ships so the robot walks on day one. The modification surface is also unusually clean — a student editing reward weights touches exactly one file, and nothing they'd break lives near the learning algorithm. But the flagship assignment does not work. I trained the "good" and "sabotaged" rewards to 1M steps and **the behavioral difference is not visible** (7.9 cm/5.6 cm·s⁻¹ vs 7.7 cm/6.3 cm·s⁻¹) **[M]**. The README's central exercise — break the reward, watch it crawl — needs a ~10M-step run students cannot afford, and the repo currently promises it will work at any budget. That's a full class period spent on an experiment that produces a shrug. With 18 robots the logistics are comfortable — ~2 students per unit, no servo-duty concern — but the constants in `contract.py` were measured on **one** Bittle and are now being asked to describe eighteen. Fix the exercise set (I've since replaced it with faster-acting ones, unverified), spot-check ROM across a few units, and this is a strong final project.
 
 ---
 
@@ -390,7 +392,12 @@ Two caveats: editing `JOINT_HISTORY_LEN` in `contract.py` changes `OBSERVATION_S
 
 **Can a policy be deployed without reflashing between students? Yes** — this is the good news. The firmware is a generic executor of `Y` posture packets; it holds no policy and no student-specific state. Swapping students is swapping a `.zip` file path on the laptop. Provided nobody changes `JOINT_HISTORY_LEN` or the action semantics in `contract.py`, every student's policy runs on the same flash. **[I]** from the firmware handler; not exercised with 35 policies.
 
-**The real constraint is not technical.** One robot, 35 students, ~50-minute periods. A `run.py` session is 20 s of walking plus reset and handling — call it 2 minutes per student with changeover. That is ~70 minutes, i.e. more than one full period, with zero slack for a fall, a flat battery, or a policy that thrashes. Servo duty cycle over 35 consecutive runs is unknown and these are hobby servos that heat up.
+**With 18 robots the throughput problem disappears.** 35 students to 18 robots is ~2 per robot. A `run.py` session is 20 s of walking plus handling — call it 2 minutes — so a pair needs ~4 minutes of robot time. That fits a single period with room for repeat attempts, and it removes the servo-duty-cycle worry entirely (2 runs per robot, not 35).
+
+**What 18 robots costs instead is setup and variance:**
+- **18 firmware flashes.** One-time, but `git apply` + build + flash per unit. Budget an afternoon, and flash one first to confirm the toolchain before doing 17 more.
+- **18 sets of serial permissions** if students use their own laptops — though `dialout` is per-*laptop*, not per-robot, so this scales with machines, not units.
+- **Per-unit variation, which is new and unhandled.** See Blocker 2.
 
 ### Shipped assets **[M]**
 
@@ -409,7 +416,7 @@ Two caveats: editing `JOINT_HISTORY_LEN` in `contract.py` changes `OBSERVATION_S
 ## Blockers — ranked
 
 1. **The flagship exercise doesn't work at any feasible budget. [M]** Measured at both 500k and 1M: no visible difference. The README made an unqualified promise it cannot keep. I've rewritten it with a documented negative result and three faster replacements — **the replacements are unverified**. Verify one before committing a class period.
-2. **One robot, 35 students, 50-minute periods.** Not a code problem, but it breaks the plan arithmetic: ~70 min of pure robot time with no slack. Needs a rotation design (small groups, a demo day, or asynchronous slots), plus a spare battery and a servo-heat contingency.
+2. **The measured constants come from one specific robot, and you have 18. [I]** This replaces the original "one robot" throughput blocker, which 18 units resolve. `contract.py` hard-codes numbers a human measured on a single Bittle: joint ROM (`LIMIT_LOW_DEG`/`LIMIT_HIGH_DEG`, lines 134-135), `STAND_HEIGHT_M = 0.08`, and the `STAND_POSE_DEG = [30]*8` reset. Petoi's firmware absorbs per-unit servo-horn offsets in its EEPROM calibration, so identical units *should* land close — but "should" is doing real work there. Assembly tolerance, servo wear, and a horn one spline off all shift where a leg actually stops relative to the shell. A robot whose true ROM is tighter than the table will drive a leg into its own body and stall a servo, and **nothing in the code detects this** — the policy just performs worse. Before the class: run the firmware `balance` posture on all 18, confirm each stands, and spot-check the shoulder extremes on 3-4 units. If they vary meaningfully, the 15° safety margin (Blocker 3) stops being a nuisance and becomes the thing protecting your hardware.
 3. **The 15° safety margin silently alters the shipped policy. [M]** 14% of steps, up to 4°. Either report it in `run.py`, apply the same clip in sim, or default it to 0 with a documented "raise it if the robot fights its shell."
 4. **Colab's Python version is unverified.** If 3.12+, every session pays a multi-minute pybullet source build that looks like a hang. Verify once, then tell students exactly what to expect.
 5. **`best_model.zip` can silently be near-random** if eval never improves. A student can burn 40 minutes and deploy noise with no error. Print a warning when best-eval never beat the initial value.
@@ -435,9 +442,10 @@ Two caveats: editing `JOINT_HISTORY_LEN` in `contract.py` changes `OBSERVATION_S
 | Real Colab wall-clock | Extrapolated ×2–3 from M4 measurements | Run 300k in Colab, read the reported fps |
 | Whether the three replacement exercises produce visible change | Ran out of budget after the two 1M runs | Three 300k runs, ~15 min each |
 | Whether `W_HEIGHT = 0` + no gate reproduces the crawl | Same | One 1M run |
-| Servo thermal behavior over 35 consecutive runs | Needs the physical robot | One class-length soak test |
+| Per-unit ROM variation across the 18 | Needs the robots | Jog the shoulders on 3-4 units, compare against `contract.py` limits |
 | Whether school laptops can install even the robot-side wheels | Depends on local IT policy | Try it on one managed laptop |
 | Whether `walk_v10` works on hardware | Never tested; now removed from the repo | n/a |
+| Whether `walk_v9` transfers to all 18 units, or only the one it was tuned on | Only ever run on a single robot | Deploy it to 3-4 units and compare gaits |
 | Real classroom pacing | Not inferable from code | A pilot with 4–5 students |
 | Whether the hardware path still works end-to-end after this session's rewrite | No robot attached; `robot/link.py` self-check never run | 5 minutes with the robot plugged in |
 
