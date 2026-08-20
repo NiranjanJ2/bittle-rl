@@ -1,0 +1,12 @@
+# Google Colab (or any Linux box) — TRAIN a policy in simulation.
+# Superset of requirements-robot.txt plus the simulator.
+stable-baselines3==2.8.0
+gymnasium==1.2.3
+numpy==1.26.4
+scipy==1.14.1
+pybullet==3.2.7            # physics. See note below.
+imageio==2.37.4            # writing the GIF in training/watch.py
+
+# PyBullet ships Linux wheels only for Python 3.10 and 3.11. On Python 3.12+
+# pip falls back to source and compiles for several minutes. It normally
+# succeeds on Colab (build tools present); it is just slow.

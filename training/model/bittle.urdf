@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<robot name="BittleMesh">
+  <material name="yellow"><color rgba="1 0.7 0 1"/></material>
+  <link name="torso">
+    <visual><geometry><mesh filename="meshes/torso.obj"/></geometry><material name="yellow"/></visual>
+    <collision><geometry><mesh filename="meshes/torso.obj"/></geometry></collision>
+    <inertial><origin xyz="0.0002 -0.0000 0.0013"/><mass value="0.123"/>
+      <inertia ixx="9.24e-05" ixy="0" ixz="0" iyy="1.53e-04" iyz="0" izz="2.26e-04"/></inertial>
+  </link>
+  <link name="battery">
+    <visual><geometry><mesh filename="meshes/battery.obj"/></geometry><material name="yellow"/></visual>
+    <collision><geometry><mesh filename="meshes/battery.obj"/></geometry></collision>
+    <inertial><origin xyz="0.0030 -0.0003 -0.0048"/><mass value="0.056"/>
+      <inertia ixx="4.73e-06" ixy="0" ixz="0" iyy="2.07e-05" iyz="0" izz="2.40e-05"/></inertial>
+  </link>
+  <joint name="battery" type="fixed"><origin xyz="0 0 0"/><parent link="torso"/><child link="battery"/></joint>
+  <link name="left_upper_arm">
+    <visual><geometry><mesh filename="meshes/left_upper_arm.obj"/></geometry><material name="yellow"/></visual>
+    <collision><geometry><mesh filename="meshes/left_upper_arm.obj"/></geometry></collision>
+    <inertial><origin xyz="-0.0000 0.0040 -0.0226"/><mass value="0.006"/>
+      <inertia ixx="2.07e-06" ixy="0" ixz="0" iyy="2.11e-06" iyz="0" izz="1.78e-07"/></inertial>
+  </link>
+  <joint name="shoulder_left" type="revolute"><axis xyz="0 1 0"/><origin xyz="0.0478 0.0408 -0.0019"/><parent link="torso"/><child link="left_upper_arm"/><limit effort="1" lower="-2.182" upper="1.222" velocity="10"/></joint>
+  <link name="right_upper_arm">
+    <visual><geometry><mesh filename="meshes/right_upper_arm.obj"/></geometry><material name="yellow"/></visual>
+    <collision><geometry><mesh filename="meshes/right_upper_arm.obj"/></geometry></collision>
+    <inertial><origin xyz="0.0000 -0.0071 -0.0225"/><mass value="0.006"/>
+      <inertia ixx="2.03e-06" ixy="0" ixz="0" iyy="2.07e-06" iyz="0" izz="1.78e-07"/></inertial>
+  </link>
+  <joint name="shoulder_right" type="revolute"><axis xyz="0 -1 0"/><origin xyz="0.0478 -0.0413 -0.0019"/><parent link="torso"/><child link="right_upper_arm"/><limit effort="1" lower="-1.222" upper="2.182" velocity="10"/></joint>
+  <link name="right_upper_leg">
+    <visual><geometry><mesh filename="meshes/right_upper_leg.obj"/></geometry><material name="yellow"/></visual>
+    <collision><geometry><mesh filename="meshes/right_upper_leg.obj"/></geometry></collision>
+    <inertial><origin xyz="0.0000 -0.0071 -0.0225"/><mass value="0.006"/>
+      <inertia ixx="2.03e-06" ixy="0" ixz="0" iyy="2.07e-06" iyz="0" izz="1.78e-07"/></inertial>
+  </link>
+  <joint name="hip_right" type="revolute"><axis xyz="0 -1 0"/><origin xyz="-0.0475 -0.0413 -0.0019"/><parent link="torso"/><child link="right_upper_leg"/><limit effort="1" lower="-2.182" upper="0.611" velocity="10"/></joint>
+  <link name="left_upper_leg">
+    <visual><geometry><mesh filename="meshes/left_upper_leg.obj"/></geometry><material name="yellow"/></visual>
+    <collision><geometry><mesh filename="meshes/left_upper_leg.obj"/></geometry></collision>
+    <inertial><origin xyz="-0.0000 0.0040 -0.0226"/><mass value="0.006"/>
+      <inertia ixx="2.07e-06" ixy="0" ixz="0" iyy="2.11e-06" iyz="0" izz="1.78e-07"/></inertial>
+  </link>
+  <joint name="hip_left" type="revolute"><axis xyz="0 1 0"/><origin xyz="-0.0475 0.0408 -0.0019"/><parent link="torso"/><child link="left_upper_leg"/><limit effort="1" lower="-0.611" upper="2.182" velocity="10"/></joint>
+  <link name="left_lower_arm">
+    <visual><geometry><mesh filename="meshes/left_lower_arm.obj"/></geometry><material name="yellow"/></visual>
+    <collision><geometry><mesh filename="meshes/left_lower_arm.obj"/></geometry></collision>
+    <inertial><origin xyz="-0.0003 -0.0114 -0.0108"/><mass value="0.017"/>
+      <inertia ixx="5.99e-06" ixy="0" ixz="0" iyy="5.40e-06" iyz="0" izz="1.19e-06"/></inertial>
+  </link>
+  <joint name="elbow_left" type="revolute"><axis xyz="0 -1 0"/><origin xyz="-0.0000 -0.0000 -0.0450" rpy="0 -1.5708 0"/><parent link="left_upper_arm"/><child link="left_lower_arm"/><limit effort="1" lower="-2.182" upper="1.047" velocity="10"/></joint>
+  <link name="right_lower_arm">
+    <visual><geometry><mesh filename="meshes/right_lower_arm.obj"/></geometry><material name="yellow"/></visual>
+    <collision><geometry><mesh filename="meshes/right_lower_arm.obj"/></geometry></collision>
+    <inertial><origin xyz="-0.0001 0.0107 -0.0109"/><mass value="0.017"/>
+      <inertia ixx="5.67e-06" ixy="0" ixz="0" iyy="5.02e-06" iyz="0" izz="1.18e-06"/></inertial>
+  </link>
+  <joint name="elbow_right" type="revolute"><axis xyz="0 1 0"/><origin xyz="-0.0000 -0.0037 -0.0457" rpy="0 -1.5708 0"/><parent link="right_upper_arm"/><child link="right_lower_arm"/><limit effort="1" lower="-1.047" upper="2.182" velocity="10"/></joint>
+  <link name="right_lower_leg">
+    <visual><geometry><mesh filename="meshes/right_lower_leg.obj"/></geometry><material name="yellow"/></visual>
+    <collision><geometry><mesh filename="meshes/right_lower_leg.obj"/></geometry></collision>
+    <inertial><origin xyz="-0.0001 0.0107 -0.0099"/><mass value="0.017"/>
+      <inertia ixx="5.67e-06" ixy="0" ixz="0" iyy="5.02e-06" iyz="0" izz="1.18e-06"/></inertial>
+  </link>
+  <joint name="knee_right" type="revolute"><axis xyz="0 1 0"/><origin xyz="-0.0000 -0.0037 -0.0457" rpy="0 -1.5708 0"/><parent link="right_upper_leg"/><child link="right_lower_leg"/><limit effort="1" lower="-0.785" upper="2.182" velocity="10"/></joint>
+  <link name="left_lower_leg">
+    <visual><geometry><mesh filename="meshes/left_lower_leg.obj"/></geometry><material name="yellow"/></visual>
+    <collision><geometry><mesh filename="meshes/left_lower_leg.obj"/></geometry></collision>
+    <inertial><origin xyz="-0.0003 -0.0115 -0.0106"/><mass value="0.017"/>
+      <inertia ixx="5.99e-06" ixy="0" ixz="0" iyy="5.40e-06" iyz="0" izz="1.19e-06"/></inertial>
+  </link>
+  <joint name="knee_left" type="revolute"><axis xyz="0 -1 0"/><origin xyz="0.0000 -0.0000 -0.0450" rpy="0 -1.5708 0"/><parent link="left_upper_leg"/><child link="left_lower_leg"/><limit effort="1" lower="-2.182" upper="0.785" velocity="10"/></joint>
+  <link name="left_front_paw"><collision><geometry><sphere radius="0.006"/></geometry></collision>
+    <inertial><mass value="0.0005"/><inertia ixx="1e-7" ixy="0" ixz="0" iyy="1e-7" iyz="0" izz="1e-7"/></inertial></link>
+  <joint name="paw_left_front_paw" type="fixed"><origin xyz="-0.0023 -0.0123 -0.0503"/><parent link="left_lower_arm"/><child link="left_front_paw"/></joint>
+  <link name="right_front_paw"><collision><geometry><sphere radius="0.006"/></geometry></collision>
+    <inertial><mass value="0.0005"/><inertia ixx="1e-7" ixy="0" ixz="0" iyy="1e-7" iyz="0" izz="1e-7"/></inertial></link>
+  <joint name="paw_right_front_paw" type="fixed"><origin xyz="-0.0015 0.0064 -0.0498"/><parent link="right_lower_arm"/><child link="right_front_paw"/></joint>
+  <link name="right_back_paw"><collision><geometry><sphere radius="0.006"/></geometry></collision>
+    <inertial><mass value="0.0005"/><inertia ixx="1e-7" ixy="0" ixz="0" iyy="1e-7" iyz="0" izz="1e-7"/></inertial></link>
+  <joint name="paw_right_back_paw" type="fixed"><origin xyz="-0.0015 0.0064 -0.0488"/><parent link="right_lower_leg"/><child link="right_back_paw"/></joint>
+  <link name="left_back_paw"><collision><geometry><sphere radius="0.006"/></geometry></collision>
+    <inertial><mass value="0.0005"/><inertia ixx="1e-7" ixy="0" ixz="0" iyy="1e-7" iyz="0" izz="1e-7"/></inertial></link>
+  <joint name="paw_left_back_paw" type="fixed"><origin xyz="-0.0023 -0.0123 -0.0501"/><parent link="left_lower_leg"/><child link="left_back_paw"/></joint>
+</robot>

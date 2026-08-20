@@ -1,0 +1,192 @@
+--- a/src/OpenCat.h
++++ b/src/OpenCat.h
+@@ -77,7 +77,7 @@
+ #define BOARD "B"
+ #endif
+ 
+-#define DATE "260527"  // YYMMDD
++#define DATE "260522"  // YYMMDD
+ String SoftwareVersion = "";
+ String uniqueName = "";
+ 
+@@ -86,10 +86,12 @@
+ // #define I2C_EEPROM_ADDRESS 0x54  // Address of i2c eeprom chip
+ 
+ #define BIRTHMARK '@'  // Send '!' token to reset the birthmark in the EEPROM so that the robot will know to restart and reset
++#ifndef RL_SIM2REAL_MINIMAL
+ #define BT_BLE  // toggle Bluetooth Low Energy (BLE）
+ #define BT_SSP  // toggle Bluetooth Secure Simple Pairing (BT_SSP)
+ // #define WIFI_MANAGER  // toggle WiFi Manager. It should be always off for now
+ #define WEB_SERVER // toggle web server
++#endif
+ // #define SHOW_FPS // toggle FPS display
+ #ifndef VT
+ #define GYRO_PIN  // toggle the Inertia Measurement Unit (IMU), i.e. the gyroscope
+@@ -147,9 +149,11 @@
+ #define INTERRUPT_PIN 26  // use pin 2 on Arduino Uno & most boards
+ #define BUZZER 25
+ #define IR_PIN 23
++#ifndef RL_SIM2REAL_MINIMAL
+ #ifndef IR_PIN
+ #define BT_CLIENT  // toggle Bluetooth client (BLE） for Micro:Bit
+ #endif
++#endif
+ #define ANALOG1 34
+ #define ANALOG2 35
+ #define ANALOG3 36
+@@ -176,7 +180,9 @@
+ #define PWM_NUM 12
+ // #define INTERRUPT_PIN 26  // use pin 2 on Arduino Uno & most boards
+ #define BUZZER 2
++#ifndef RL_SIM2REAL_MINIMAL
+ #define BT_CLIENT  // toggle Bluetooth client (BLE） for Micro:Bit
++#endif
+ // #define IR_PIN 23
+ 
+ #define LOW_VOLTAGE 7.0  // for 2S 7.4V power
+@@ -332,6 +338,7 @@
+   'i'  // i jointIndex1 jointAngle1 jointIndex2 jointAngle2 ... e.g. i0 70 8 -20 9 -20. a single 'i' will free the head
+        // joints if it were previously manually controlled.
+ #define T_INDEXED_SIMULTANEOUS_BIN 'I'  // I jointIndex1 jointAngle1 jointIndex2 jointAngle2 ... e.g. I0 70 8 -20 9 -20
++#define T_RL_RAW_POSTURE_BIN 'Y'  // Y angle8 angle9 ... angle15. Direct non-blocking RL servo targets.
+ #define T_JOINTS 'j'  // A single "j" returns all angles. "j Index" prints the joint's angle. e.g. "j 8" or "j11".
+ #define T_JOYSTICK 'J'
+ #define T_SKILL 'k'
+@@ -401,7 +408,7 @@
+ #define IMU_EXCEPTION_TURNING -7
+ 
+ char defaultLan = 'a';
+-char currentLan = 'a';
++char currentLan;
+ // bool updated[10];
+ float degPerRad = 180 / M_PI;
+ float radPerDeg = M_PI / 180;
+@@ -496,8 +503,16 @@
+ 
+ 
+ 
++#ifdef RL_SIM2REAL_MINIMAL
+ int8_t moduleList[] = {
+     EXTENSION_GROVE_SERIAL,
++};
++
++String moduleNames[] = {"Grove_Serial"};
++bool moduleActivatedQ[] = {0};
++#else
++int8_t moduleList[] = {
++    EXTENSION_GROVE_SERIAL,
+     EXTENSION_VOICE,
+     EXTENSION_DOUBLE_TOUCH,
+     EXTENSION_DOUBLE_LIGHT,
+@@ -515,14 +530,8 @@
+ #ifdef NYBBLE
+ bool moduleActivatedQ[] = {0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0};
+ #else
+-#ifdef BiBoard_V1_0 
+-// default enable Grove_Serial + Voice + BackTouch (BiBoard_V1_0: Serial2 / Serial1 / pin 38 — no UART conflict)
+-bool moduleActivatedQ[] = {1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0};
+-#else 
+-// for BiBoard V0.1/V0.2
+-// Both Voice and Grove_Serial utilize Serial2; therefore, they cannot be enabled simultaneously by default.
+-bool moduleActivatedQ[] = {0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0}; 
+-#endif 
++bool moduleActivatedQ[] = {0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0};
++#endif
+ #endif
+ bool moduleDemoQ = false;
+ int8_t moduleIndex;
+@@ -631,7 +640,9 @@
+ #include "sound.h"
+ #include <Wire.h>
+ #include "configConstants.h"
++#ifndef RL_SIM2REAL_MINIMAL
+ #include "bluetoothManager.h"
++#endif
+ #include "io.h"
+ #ifdef GYRO_PIN
+ #include "imu.h"
+@@ -744,8 +755,10 @@
+ 
+   QA();
+   
++#ifndef RL_SIM2REAL_MINIMAL
+   // Bluetooth mode intelligent switching initialization
+   initBluetoothModes();
++#endif
+   tQueue = new TaskQueue();
+   loadBySkillName("rest");  // must have to avoid memory crash. need to check why.
+                             // allCalibratedPWM(currentAng); alone will lead to crash
+@@ -770,9 +783,5 @@
+ #endif
+   PTL("Ready!");
+   beep(24, 50);
+-#ifdef VOICE
+-  if (moduleActivatedQfunction(EXTENSION_VOICE))
+-    voiceSyncAtStartup();  // after IMU/BLE/servos — voice module needs full boot delay
+-#endif
+   idleTimer = millis();
+ }
+--- a/src/reaction.h
++++ b/src/reaction.h
+@@ -356,7 +356,7 @@
+     if (token != T_REST && newCmdIdx < 5)
+       idleTimer = millis();
+     if (newCmdIdx < 5 && lowerToken != T_BEEP && token != T_MEOW && token != T_LISTED_BIN
+-        && token != T_INDEXED_SIMULTANEOUS_BIN && token != T_TILT && token != T_READ && token != T_WRITE
++        && token != T_INDEXED_SIMULTANEOUS_BIN && token != T_RL_RAW_POSTURE_BIN && token != T_TILT && token != T_READ && token != T_WRITE
+         && token != T_JOYSTICK && token != T_EXTENSION)
+       beep(15 + newCmdIdx, 5);  // ToDo: check the muted sound when newCmdIdx = -1
+     if (!workingStiffness
+@@ -1061,6 +1061,16 @@
+         }
+ 
+       // this block handles array like arguments
++      case T_RL_RAW_POSTURE_BIN:
++        {
++          gyroBalanceQ = false;
++          resetAdjust();
++          if (cmdLen == WALKING_DOF) {
++            for (byte i = 0; i < WALKING_DOF; i++)
++              calibratedPWM(DOF - WALKING_DOF + i, (int8_t)newCmd[i]);
++          }
++          break;
++        }
+       case T_INDEXED_SEQUENTIAL_BIN:
+       case T_INDEXED_SIMULTANEOUS_BIN:
+       case T_READ:
+--- a/src/motion.h
++++ b/src/motion.h
+@@ -621,7 +621,11 @@
+   // PTLF("Auto calibration reference:");
+   // printList(calibrationReference);
+   PTLF("Push the robot tightly to the ground. Enter any character when ready.");
++#ifdef BT_BLE
+   while (!Serial.available() && !buffLen)  // wait for user input
++#else
++  while (!Serial.available())  // wait for user input
++#endif
+     ;
+   while (Serial.available())
+     Serial.read();
+--- a/src/imu.h
++++ b/src/imu.h
+@@ -577,14 +577,16 @@
+ 
+ #define PRINT_ACCELERATION
+ static unsigned long lastPrint6AxisTime = 0;
+-const unsigned long PRINT6AXIS_MIN_INTERVAL = 200;  // Minimum 200ms between prints to prevent stack overflow (sprintf uses significant stack)
++#ifndef PRINT6AXIS_MIN_INTERVAL_MS
++#define PRINT6AXIS_MIN_INTERVAL_MS 25  // 40 Hz IMU state stream for sim2real policy timing.
++#endif
++const unsigned long PRINT6AXIS_MIN_INTERVAL = PRINT6AXIS_MIN_INTERVAL_MS;
+ 
+ void print6Axis() {
+   if (!updateGyroQ)
+     return;
+   
+-  // Limit print frequency to prevent stack overflow from frequent calls
+-  // sprintf() with float formatting uses significant stack space on ESP32
++  // Limit print frequency to protect the ESP32 stack while keeping the RL state stream fresh.
+   unsigned long currentTime = millis();
+   if (currentTime - lastPrint6AxisTime < PRINT6AXIS_MIN_INTERVAL) {
+     return;  // Skip if called too frequently

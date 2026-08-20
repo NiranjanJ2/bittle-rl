@@ -1,0 +1,9 @@
+# Pop!_OS / Linux laptop — RUN a trained policy on the real robot.
+# Every package here ships a prebuilt wheel: nothing compiles, no build tools,
+# no admin rights needed. PyBullet is deliberately absent -- the hardware path
+# never imports it.
+stable-baselines3==2.8.0   # loads the .zip policy
+gymnasium==1.2.3           # the env interface robot/env.py implements
+numpy==1.26.4
+scipy==1.14.1              # quaternion maths in contract.py
+pyserial==3.5              # the USB link to the robot
