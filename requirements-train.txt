@@ -1,12 +1,18 @@
 # Google Colab (or any Linux box) — TRAIN a policy in simulation.
 # Superset of requirements-robot.txt plus the simulator.
-stable-baselines3==2.8.0
-gymnasium==1.2.3
-numpy==1.26.4
-scipy==1.14.1
-pybullet==3.2.7            # physics. See note below.
-imageio==2.37.4            # writing the GIF in training/watch.py
 
-# PyBullet ships Linux wheels only for Python 3.10 and 3.11. On Python 3.12+
-# pip falls back to source and compiles for several minutes. It normally
-# succeeds on Colab (build tools present); it is just slow.
+# Must match the robot side's major version. A policy trained under numpy 1
+# will not load on a machine running numpy 2, and vice versa -- the saved
+# file is a pickle and numpy 2.0 renamed its internal modules.
+numpy>=2.0,<3
+
+stable-baselines3>=2.7,<3
+gymnasium>=1.0,<2
+scipy>=1.13
+imageio>=2.31               # writing the GIF in training/watch.py
+
+# PyBullet ships Linux wheels for Python 3.10 and 3.11 only. On 3.12+ pip
+# falls back to source and compiles for several minutes. That normally
+# succeeds on Colab (build tools present); it is just slow, and it looks
+# like a hang. Be patient on the install cell.
+pybullet>=3.2,<4

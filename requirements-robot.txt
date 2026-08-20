@@ -1,9 +1,17 @@
 # Pop!_OS / Linux laptop — RUN a trained policy on the real robot.
-# Every package here ships a prebuilt wheel: nothing compiles, no build tools,
-# no admin rights needed. PyBullet is deliberately absent -- the hardware path
-# never imports it.
-stable-baselines3==2.8.0   # loads the .zip policy
-gymnasium==1.2.3           # the env interface robot/env.py implements
-numpy==1.26.4
-scipy==1.14.1              # quaternion maths in contract.py
-pyserial==3.5              # the USB link to the robot
+# Needs Python 3.10 or newer. Nothing compiles: every package below ships a
+# prebuilt wheel, so no build tools and no admin rights. PyBullet is
+# deliberately absent -- the hardware path never imports it.
+
+# numpy 2 is REQUIRED, not merely allowed. A saved policy is a pickle, and
+# numpy renamed its internals (numpy.core -> numpy._core) in version 2.0.
+# The shipped walk_v9.zip was saved under numpy 2, so loading it under
+# numpy 1.x fails with "No module named 'numpy._core'".
+# Whatever you train with must match what you deploy with -- see
+# requirements-train.txt, which pins the same major version.
+numpy>=2.0,<3
+
+stable-baselines3>=2.7,<3   # loads the .zip policy (pulls in PyTorch, ~900 MB)
+gymnasium>=1.0,<2           # the env interface robot/env.py implements
+scipy>=1.13                 # quaternion maths in contract.py
+pyserial>=3.5               # the USB link to the robot

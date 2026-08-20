@@ -44,7 +44,27 @@ pip install -r requirements-robot.txt
 ```
 
 Nothing compiles — every package is a prebuilt wheel, so this works without
-build tools or admin rights, on any Python from 3.9 to 3.13.
+build tools or admin rights. **Needs Python 3.10 or newer:**
+
+```bash
+python3 --version
+```
+
+If pip complains it cannot find a numpy version, your Python is older than
+3.10. Install a newer one (`sudo apt install python3.12 python3.12-venv`) and
+build the venv with that instead.
+
+**If you already installed and hit `ModuleNotFoundError: No module named
+'numpy._core'`,** you have numpy 1.x and the shipped policy was saved under
+numpy 2. Fix it in place:
+
+```bash
+pip install -U "numpy>=2.0,<3"
+```
+
+A saved policy is a pickle, and numpy renamed its internals in 2.0. Whatever
+numpy major version you train with must match the one you deploy with —
+that is why both requirements files pin the same range.
 
 **One-time: give yourself permission to use the USB port.** On Linux, serial
 devices belong to the `dialout` group and you are not in it by default:
