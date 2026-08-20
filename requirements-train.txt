@@ -4,7 +4,7 @@
 # Must match the robot side's major version. A policy trained under numpy 1
 # will not load on a machine running numpy 2, and vice versa -- the saved
 # file is a pickle and numpy 2.0 renamed its internal modules.
-numpy>=2.0,<3
+numpy>=2.0,<3    # see requirements-robot.txt for why numpy 2 is mandatory
 
 stable-baselines3>=2.7,<3
 gymnasium>=1.0,<2
@@ -16,3 +16,9 @@ imageio>=2.31               # writing the GIF in training/watch.py
 # succeeds on Colab (build tools present); it is just slow, and it looks
 # like a hang. Be patient on the install cell.
 pybullet>=3.2,<4
+
+# ---------------------------------------------------------------------------
+# Train and deploy MUST agree on the numpy major version. A policy trained
+# under numpy 1 will not load on a numpy 2 machine, and vice versa. Both
+# requirements files pin the same range for exactly this reason.
+# ---------------------------------------------------------------------------

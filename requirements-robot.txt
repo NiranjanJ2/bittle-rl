@@ -1,17 +1,35 @@
 # Pop!_OS / Linux laptop — RUN a trained policy on the real robot.
-# Needs Python 3.10 or newer. Nothing compiles: every package below ships a
-# prebuilt wheel, so no build tools and no admin rights. PyBullet is
-# deliberately absent -- the hardware path never imports it.
+# Needs Python 3.10 or newer. Nothing compiles: every package ships a prebuilt
+# wheel, so no build tools and no admin rights. PyBullet is deliberately
+# absent -- the hardware path never imports it.
 
-# numpy 2 is REQUIRED, not merely allowed. A saved policy is a pickle, and
-# numpy renamed its internals (numpy.core -> numpy._core) in version 2.0.
-# The shipped walk_v9.zip was saved under numpy 2, so loading it under
-# numpy 1.x fails with "No module named 'numpy._core'".
-# Whatever you train with must match what you deploy with -- see
-# requirements-train.txt, which pins the same major version.
+# ---------------------------------------------------------------------------
+# numpy 2 is REQUIRED, not merely allowed.
+# ---------------------------------------------------------------------------
+# A saved policy is a pickle. numpy renamed its internals in 2.0
+# (numpy.core -> numpy._core), and walk_v9.zip was saved under numpy 2, so it
+# references numpy._core.numeric directly. Loading it under numpy 1.x fails:
+#     ModuleNotFoundError: No module named 'numpy._core'
+#
+# Nothing else in the dependency graph enforces this -- Stable-Baselines3
+# itself only asks for numpy>=1.20 -- so this line is doing the real work.
+#
+# Deliberately a RANGE, not an exact pin: numpy 2.4 dropped Python 3.10, so
+# pinning one version would break Pop!_OS 22.04. The range resolves to 2.2.x
+# on Python 3.10 and 2.4.x on 3.11+, and either is fine.
 numpy>=2.0,<3
 
-stable-baselines3>=2.7,<3   # loads the .zip policy (pulls in PyTorch, ~900 MB)
+stable-baselines3>=2.7,<3   # loads the .zip policy; pulls in PyTorch
+torch>=2.3,<3               # ~900 MB. Listed explicitly so it is not a surprise.
 gymnasium>=1.0,<2           # the env interface robot/env.py implements
 scipy>=1.13                 # quaternion maths in contract.py
 pyserial>=3.5               # the USB link to the robot
+
+# ---------------------------------------------------------------------------
+# Known-good set, verified end-to-end on 2026-08-20 (Python 3.11):
+#   numpy 2.4.6 · scipy 1.17.1 · torch 2.13.0 · gymnasium 1.3.0
+#   stable-baselines3 2.9.0 · pyserial 3.5
+# Verified: fresh venv install, walk_v9.zip loads and predicts, all modules
+# import, `python contract.py` passes.
+# If a future release breaks something mid-term, pin to exactly the above.
+# ---------------------------------------------------------------------------
